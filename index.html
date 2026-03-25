@@ -3,49 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AzDev Cronograma</title>
+    <title>AzDev Cronograma - Períodos</title>
     <style>
         :root {
             --bg: #0b0d12; --card: #161b22; --accent: #00e5ff;
             --text: #e6edf3; --border: #30363d; --danger: #f85149;
+            --morning: #e3b341; --afternoon: #f78166; --night: #7082ff;
         }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
 
         .container { max-width: 1600px; margin: 0 auto; }
-        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
         button { cursor: pointer; border-radius: 6px; border: none; font-weight: 600; transition: 0.2s; }
         .btn-primary { background: var(--accent); color: #000; padding: 10px 20px; }
         .btn-danger { background: var(--danger); color: white; padding: 8px 15px; }
         
-        /* Grid */
+        /* Layout em Grade por Período */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-        .day-column { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; min-height: 400px; }
-        .day-header { background: var(--card); padding: 12px; text-align: center; color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; }
+        .day-column { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; }
+        .day-header { background: var(--card); padding: 10px; text-align: center; color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; }
+
+        .period-section { padding: 5px; border-bottom: 1px dashed #21262d; min-height: 80px; }
+        .period-label { font-size: 0.65rem; text-transform: uppercase; padding: 5px; font-weight: 800; opacity: 0.7; }
+        .label-manhã { color: var(--morning); }
+        .label-tarde { color: var(--afternoon); }
+        .label-noite { color: var(--night); }
 
         .task-card { 
-            background: var(--card); margin: 8px; padding: 10px; border-radius: 6px; 
-            border-left: 4px solid var(--border); cursor: pointer; position: relative;
+            background: var(--card); margin: 5px; padding: 8px; border-radius: 4px; 
+            border-left: 3px solid var(--border); cursor: pointer; transition: 0.2s;
         }
-        .task-card:hover { transform: translateY(-2px); border-left-color: var(--accent); }
-        .task-time { font-size: 0.75rem; color: #8b949e; display: block; }
-        .task-name { font-size: 0.9rem; font-weight: 600; }
+        .task-card:hover { border-left-color: var(--accent); background: #1c2128; }
+        .task-time { font-size: 0.7rem; color: #8b949e; display: block; }
+        .task-name { font-size: 0.85rem; font-weight: 500; }
 
         /* Modal */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 10; padding: 20px; }
         .modal-content { background: var(--card); padding: 25px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid var(--border); }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 6px; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 6px; }
 
-        @media (max-width: 1000px) { .calendar-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1200px) { .calendar-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
+        @media (max-width: 600px) { .calendar-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header-actions">
-        <h2>Cronograma Semanal</h2>
-        <button class="btn-primary" onclick="openModal()">+ Nova Atividade</button>
+        <h2>Schedule AzDev</h2>
+        <button class="btn-primary" onclick="openModal()">+ Atividade</button>
     </div>
     
     <div class="calendar-grid" id="calendarGrid"></div>
@@ -53,24 +61,21 @@
 
 <div class="modal" id="taskModal">
     <div class="modal-content">
-        <h3 id="modalTitle">Cadastrar Atividade</h3>
+        <h3 id="modalTitle">Atividade</h3>
         <input type="hidden" id="editIndex">
-        <label>Dia da Semana</label>
         <select id="dayInput">
             <option value="0">Domingo</option><option value="1">Segunda</option>
             <option value="2">Terça</option><option value="3">Quarta</option>
             <option value="4">Quinta</option><option value="5">Sexta</option>
             <option value="6">Sábado</option>
         </select>
-        <label>Horário</label>
         <input type="time" id="timeInput">
-        <label>Atividade</label>
-        <input type="text" id="taskInput" placeholder="Descreva a Atividade">
+        <input type="text" id="taskInput" placeholder="O que vai fazer?">
         
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn-primary" style="flex: 2" onclick="saveTask()">Salvar</button>
             <button id="deleteBtn" class="btn-danger" style="flex: 1; display: none;" onclick="deleteTask()">Excluir</button>
-            <button class="btn-danger" style="background: #444;" onclick="closeModal()">Cancelar</button>
+            <button class="btn-danger" style="background: #444;" onclick="closeModal()">Sair</button>
         </div>
     </div>
 </div>
@@ -78,13 +83,14 @@
 <script>
     const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
     
-    // Dados iniciais baseados na sua planilha
-    const initialRoutine = [
-        
-        // ... o sistema carregará o restante conforme você interagir
-    ];
+    let routine = JSON.parse(localStorage.getItem('azdev_routine_v2')) || [];
 
-    let routine = JSON.parse(localStorage.getItem('azdev_routine')) || initialRoutine;
+    function getPeriod(time) {
+        const hour = parseInt(time.split(':')[0]);
+        if (hour >= 5 && hour < 12) return "manhã";
+        if (hour >= 12 && hour < 18) return "tarde";
+        return "noite";
+    }
 
     function render() {
         const grid = document.getElementById('calendarGrid');
@@ -93,80 +99,69 @@
         days.forEach((dayName, dayIdx) => {
             const dayTasks = routine.filter(t => t.day == dayIdx).sort((a,b) => a.time.localeCompare(b.time));
             
-            const tasksHtml = dayTasks.map(t => {
-                // Encontrar o index real no array original para edição
-                const realIdx = routine.indexOf(t);
-                return `
-                    <div class="task-card" onclick="openModal(${realIdx})">
-                        <span class="task-time">${t.time}</span>
-                        <span class="task-name">${t.task}</span>
+            let columnsHtml = '';
+            ["manhã", "tarde", "noite"].forEach(p => {
+                const tasksInPeriod = dayTasks.filter(t => getPeriod(t.time) === p);
+                const tasksHtml = tasksInPeriod.map(t => {
+                    const realIdx = routine.indexOf(t);
+                    return `<div class="task-card" onclick="openModal(${realIdx})">
+                                <span class="task-time">${t.time}</span>
+                                <span class="task-name">${t.task}</span>
+                            </div>`;
+                }).join('');
+
+                columnsHtml += `
+                    <div class="period-section">
+                        <div class="period-label label-${p}">${p}</div>
+                        ${tasksHtml}
                     </div>
                 `;
-            }).join('');
+            });
 
             grid.innerHTML += `
                 <div class="day-column">
                     <div class="day-header">${dayName}</div>
-                    <div class="task-container">${tasksHtml}</div>
+                    ${columnsHtml}
                 </div>
             `;
         });
-        localStorage.setItem('azdev_routine', JSON.stringify(routine));
+        localStorage.setItem('azdev_routine_v2', JSON.stringify(routine));
     }
 
     function openModal(index = null) {
         const modal = document.getElementById('taskModal');
-        const delBtn = document.getElementById('deleteBtn');
         modal.style.display = 'flex';
-
         if (index !== null) {
-            document.getElementById('modalTitle').innerText = "Editar Atividade";
             document.getElementById('editIndex').value = index;
             document.getElementById('dayInput').value = routine[index].day;
             document.getElementById('timeInput').value = routine[index].time;
             document.getElementById('taskInput').value = routine[index].task;
-            delBtn.style.display = 'block';
+            document.getElementById('deleteBtn').style.display = 'block';
         } else {
-            document.getElementById('modalTitle').innerText = "Nova Atividade";
             document.getElementById('editIndex').value = "";
             document.getElementById('taskInput').value = "";
-            delBtn.style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
         }
     }
 
-    function closeModal() { document.getElementById('taskModal').style.display = 'none'; }
-
     function saveTask() {
         const idx = document.getElementById('editIndex').value;
-        const newTask = {
+        const taskData = {
             day: parseInt(document.getElementById('dayInput').value),
             time: document.getElementById('timeInput').value,
             task: document.getElementById('taskInput').value
         };
-
-        if (!newTask.time || !newTask.task) return alert("Preencha tudo!");
-
-        if (idx !== "") {
-            routine[idx] = newTask;
-        } else {
-            routine.push(newTask);
-        }
-
-        render();
-        closeModal();
+        if (!taskData.time || !taskData.task) return;
+        idx !== "" ? routine[idx] = taskData : routine.push(taskData);
+        render(); closeModal();
     }
 
     function deleteTask() {
-        const idx = document.getElementById('editIndex').value;
-        if (confirm("Remover esta atividade?")) {
-            routine.splice(idx, 1);
-            render();
-            closeModal();
-        }
+        routine.splice(document.getElementById('editIndex').value, 1);
+        render(); closeModal();
     }
 
-    window.onclick = (event) => { if (event.target == document.getElementById('taskModal')) closeModal(); }
-
+    function closeModal() { document.getElementById('taskModal').style.display = 'none'; }
     render();
 </script>
 </body>
