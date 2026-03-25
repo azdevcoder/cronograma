@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AzDev Cronograma - Períodos</title>
+    <title>AzDev - Cronograma Oficial</title>
     <style>
         :root {
             --bg: #0b0d12; --card: #161b22; --accent: #00e5ff;
@@ -20,31 +20,29 @@
         .btn-primary { background: var(--accent); color: #000; padding: 10px 20px; }
         .btn-danger { background: var(--danger); color: white; padding: 8px 15px; }
         
-        /* Layout em Grade por Período */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-        .day-column { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; }
-        .day-header { background: var(--card); padding: 10px; text-align: center; color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; }
+        .day-column { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .day-header { background: var(--card); padding: 10px; text-align: center; color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: bold; text-transform: uppercase; font-size: 0.75rem; }
 
-        .period-section { padding: 5px; border-bottom: 1px dashed #21262d; min-height: 80px; }
-        .period-label { font-size: 0.65rem; text-transform: uppercase; padding: 5px; font-weight: 800; opacity: 0.7; }
-        .label-manhã { color: var(--morning); }
-        .label-tarde { color: var(--afternoon); }
-        .label-noite { color: var(--night); }
+        .period-section { padding: 5px; border-bottom: 1px solid #21262d; min-height: 60px; background: rgba(255,255,255,0.02); }
+        .period-label { font-size: 0.6rem; text-transform: uppercase; padding: 4px 8px; font-weight: 800; letter-spacing: 1px; }
+        .label-manhã { color: var(--morning); border-left: 2px solid var(--morning); }
+        .label-tarde { color: var(--afternoon); border-left: 2px solid var(--afternoon); }
+        .label-noite { color: var(--night); border-left: 2px solid var(--night); }
 
         .task-card { 
-            background: var(--card); margin: 5px; padding: 8px; border-radius: 4px; 
-            border-left: 3px solid var(--border); cursor: pointer; transition: 0.2s;
+            background: var(--card); margin: 4px; padding: 6px 10px; border-radius: 4px; 
+            border-left: 2px solid #30363d; cursor: pointer; transition: 0.15s;
         }
-        .task-card:hover { border-left-color: var(--accent); background: #1c2128; }
-        .task-time { font-size: 0.7rem; color: #8b949e; display: block; }
-        .task-name { font-size: 0.85rem; font-weight: 500; }
+        .task-card:hover { border-left-color: var(--accent); background: #1c2128; transform: scale(1.02); }
+        .task-time { font-size: 0.65rem; color: #8b949e; font-weight: bold; }
+        .task-name { font-size: 0.8rem; font-weight: 500; display: block; }
 
-        /* Modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 10; padding: 20px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 100; padding: 20px; }
         .modal-content { background: var(--card); padding: 25px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid var(--border); }
         input, select { width: 100%; padding: 12px; margin: 8px 0; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 6px; }
 
-        @media (max-width: 1200px) { .calendar-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
+        @media (max-width: 1200px) { .calendar-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); } }
         @media (max-width: 600px) { .calendar-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -52,10 +50,9 @@
 
 <div class="container">
     <div class="header-actions">
-        <h2>Cronograma Semanal</h2>
-        <button class="btn-primary" onclick="openModal()">+ Atividade</button>
+        <h2>Cronograma André Zago</h2>
+        <button class="btn-primary" onclick="openModal()">+ Adicionar</button>
     </div>
-    
     <div class="calendar-grid" id="calendarGrid"></div>
 </div>
 
@@ -74,7 +71,7 @@
         
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn-primary" style="flex: 2" onclick="saveTask()">Salvar</button>
-            <button id="deleteBtn" class="btn-danger" style="flex: 1; display: none;" onclick="deleteTask()">Excluir</button>
+            <button id="deleteBtn" class="btn-danger" style="flex: 1; display: none;" onclick="deleteTask()">Remover</button>
             <button class="btn-danger" style="background: #444;" onclick="closeModal()">Sair</button>
         </div>
     </div>
@@ -83,7 +80,25 @@
 <script>
     const days = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
     
-    let routine = JSON.parse(localStorage.getItem('azdev_routine_v2')) || [];
+    // TODA A SUA TABELA PROCESSADA AQUI
+    const fullDataFromTable = [
+        // Segunda
+        {day: 1, time: "07:00", task: "Acordar"}, {day: 1, time: "08:00", task: "Trabalhar"}, {day: 1, time: "09:00", task: "Trabalhar"}, {day: 1, time: "10:00", task: "Trabalhar"}, {day: 1, time: "11:00", task: "Trabalhar"}, {day: 1, time: "12:00", task: "Almoçar"}, {day: 1, time: "13:00", task: "Trabalhar"}, {day: 1, time: "14:00", task: "Trabalhar"}, {day: 1, time: "15:00", task: "Trabalhar"}, {day: 1, time: "16:00", task: "Trabalhar"}, {day: 1, time: "17:00", task: "Trabalhar"}, {day: 1, time: "18:00", task: "Trabalhar"}, {day: 1, time: "19:00", task: "Descansar"}, {day: 1, time: "22:00", task: "Jogar Bola"}, {day: 1, time: "23:00", task: "Jogar Bola"},
+        // Terça
+        {day: 2, time: "07:00", task: "Acordar"}, {day: 2, time: "08:00", task: "Trabalhar"}, {day: 2, time: "09:00", task: "Trabalhar"}, {day: 2, time: "10:00", task: "Trabalhar"}, {day: 2, time: "11:00", task: "Trabalhar"}, {day: 2, time: "12:00", task: "Almoçar"}, {day: 2, time: "13:00", task: "Trabalhar"}, {day: 2, time: "14:00", task: "Trabalhar"}, {day: 2, time: "15:00", task: "Trabalhar"}, {day: 2, time: "16:00", task: "Trabalhar"}, {day: 2, time: "17:00", task: "Trabalhar"}, {day: 2, time: "18:00", task: "Trabalhar"}, {day: 2, time: "19:00", task: "Descansar"}, {day: 2, time: "20:00", task: "Estudar"}, {day: 2, time: "21:00", task: "Estudar"}, {day: 2, time: "23:00", task: "Ler/Dormir"},
+        // Quarta
+        {day: 3, time: "07:00", task: "Acordar"}, {day: 3, time: "08:00", task: "Trabalhar"}, {day: 3, time: "09:00", task: "Trabalhar"}, {day: 3, time: "10:00", task: "Trabalhar"}, {day: 3, time: "11:00", task: "Trabalhar"}, {day: 3, time: "12:00", task: "Almoçar"}, {day: 3, time: "13:00", task: "Trabalhar"}, {day: 3, time: "14:00", task: "Trabalhar"}, {day: 3, time: "15:00", task: "Trabalhar"}, {day: 3, time: "16:00", task: "Trabalhar"}, {day: 3, time: "17:00", task: "Trabalhar"}, {day: 3, time: "18:00", task: "Trabalhar"}, {day: 3, time: "19:00", task: "Descansar"}, {day: 3, time: "20:00", task: "Projeto"}, {day: 3, time: "21:00", task: "Projeto"}, {day: 3, time: "23:00", task: "Ler/Dormir"},
+        // Quinta
+        {day: 4, time: "07:00", task: "Acordar"}, {day: 4, time: "08:00", task: "Trabalhar"}, {day: 4, time: "09:00", task: "Trabalhar"}, {day: 4, time: "10:00", task: "Trabalhar"}, {day: 4, time: "11:00", task: "Trabalhar"}, {day: 4, time: "12:00", task: "Almoçar"}, {day: 4, time: "13:00", task: "Trabalhar"}, {day: 4, time: "14:00", task: "Trabalhar"}, {day: 4, time: "15:00", task: "Trabalhar"}, {day: 4, time: "16:00", task: "Trabalhar"}, {day: 4, time: "17:00", task: "Trabalhar"}, {day: 4, time: "18:00", task: "Trabalhar"}, {day: 4, time: "19:00", task: "Descansar"}, {day: 4, time: "20:00", task: "Estudar"}, {day: 4, time: "21:00", task: "Estudar"}, {day: 4, time: "23:00", task: "Ler/Dormir"},
+        // Sexta
+        {day: 5, time: "07:00", task: "Acordar"}, {day: 5, time: "08:00", task: "Trabalhar"}, {day: 5, time: "09:00", task: "Trabalhar"}, {day: 5, time: "10:00", task: "Trabalhar"}, {day: 5, time: "11:00", task: "Trabalhar"}, {day: 5, time: "12:00", task: "Almoçar"}, {day: 5, time: "13:00", task: "Trabalhar"}, {day: 5, time: "14:00", task: "Trabalhar"}, {day: 5, time: "15:00", task: "Trabalhar"}, {day: 5, time: "16:00", task: "Trabalhar"}, {day: 5, time: "17:00", task: "Trabalhar"}, {day: 5, time: "18:00", task: "Trabalhar"}, {day: 5, time: "19:00", task: "Descansar"},
+        // Sábado
+        {day: 6, time: "09:00", task: "Acordar"}, {day: 6, time: "10:00", task: "Limpar a Casa"}, {day: 6, time: "11:00", task: "Limpar a Casa"}, {day: 6, time: "12:00", task: "Almoçar"}, {day: 6, time: "13:00", task: "Estudar/Projeto"}, {day: 6, time: "14:00", task: "Estudar/Projeto"}, {day: 6, time: "15:00", task: "Estudar/Projeto"}, {day: 6, time: "16:00", task: "Estudar/Projeto"}, {day: 6, time: "17:00", task: "Estudar/Projeto"},
+        // Domingo
+        {day: 0, time: "09:00", task: "Acordar"}, {day: 0, time: "10:00", task: "Lavar Roupa"}, {day: 0, time: "11:00", task: "Limpar a Casa"}, {day: 0, time: "23:00", task: "Ler/Dormir"}
+    ];
+
+    let routine = JSON.parse(localStorage.getItem('azdev_routine_final')) || fullDataFromTable;
 
     function getPeriod(time) {
         const hour = parseInt(time.split(':')[0]);
@@ -98,8 +113,8 @@
 
         days.forEach((dayName, dayIdx) => {
             const dayTasks = routine.filter(t => t.day == dayIdx).sort((a,b) => a.time.localeCompare(b.time));
-            
             let columnsHtml = '';
+
             ["manhã", "tarde", "noite"].forEach(p => {
                 const tasksInPeriod = dayTasks.filter(t => getPeriod(t.time) === p);
                 const tasksHtml = tasksInPeriod.map(t => {
@@ -114,18 +129,16 @@
                     <div class="period-section">
                         <div class="period-label label-${p}">${p}</div>
                         ${tasksHtml}
-                    </div>
-                `;
+                    </div>`;
             });
 
             grid.innerHTML += `
                 <div class="day-column">
                     <div class="day-header">${dayName}</div>
                     ${columnsHtml}
-                </div>
-            `;
+                </div>`;
         });
-        localStorage.setItem('azdev_routine_v2', JSON.stringify(routine));
+        localStorage.setItem('azdev_routine_final', JSON.stringify(routine));
     }
 
     function openModal(index = null) {
